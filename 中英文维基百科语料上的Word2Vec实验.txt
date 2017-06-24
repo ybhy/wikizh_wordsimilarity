@@ -1,0 +1,36 @@
+英文维基下载：https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
+中文维基下载：https://dumps.wikimedia.org/zhwiki/latest/zhwiki-latest-pages-articles.xml.bz2
+
+中文语料库训练步骤
+一：消除xml格式转化成txt，process_wiki.py
+python process_wiki.py zhwiki-latest-pages-articles.xml.bz2 wiki.zh.text
+
+二：繁转简
+用开源工具opencc，不是python里面的opencc
+opencc -i wiki.zh.text -o wiki.zh.text.jian -c t2s.json
+
+三：分词
+jieba分词，jieba_seperate_words.py
+python separate_words.py wiki.zh.text.jian wiki.zh.text.jian.seq 
+
+四：移除停用词
+
+五：移除多余字符，只保留中文和空格
+1、python中自带的re库，remove_words.py
+python3 separate_words.py wiki.cn.text.jian.seq wiki.cn.text.jian.removed
+1、提取纯中文和空格，purity.py
+
+六：训练
+1、python版word2vec，train_word2vec_model.py 
+python train_word2vec_model.py wiki.zh.text.jian.removed wiki.zh.text.jian.model wiki.zh.text.jian.vector
+(1)python
+(2)import gensim
+(3)model = gensim.models.Word2Vec.load("wiki.en.text.model")
+(4)result = model.most_similar(u'足球')
+(5)for e in xrange(10):pront result[e][0],result[e][1]
+
+2、google codeC版word2vec
+(1)去掉makefile文件的.txt后缀，执行make安装
+(2)进入word2vec文件夹终端运行进行训练，训练结果会以二进制形式保存在vectors.bin文件中
+./word2vec -train resultbig.txt -output vectors.bin -cbow 0 -size 200 -window 5 -negative 0 -hs 1 -sample(或者8) 1e-3 -threads 12 -binary 1 -iter 15
+(3)运行./distance vectors.bin查看结果
